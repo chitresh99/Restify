@@ -1,30 +1,38 @@
 import express from "express";
-import http from 'http';
-import bodyparser from "body-parser";
-import cookieparser from "cookie-parser";
-import compression from "compression";
 import cors from "cors";
-import mongoose from "mongoose";
-import 'dotenv/config'
+import bodyParser from "body-parser";
+import compression from "compression"; //Compression in npm refers to the process of reducing the size of data sent over the network to improve web application performance. 
+import cookieParser from "cookie-parser";
+import dotenv from "dotenv";
+import mongoose, { mongo } from "mongoose";
+import router from "routes/auth.routes";
 
-require('dotenv').config()
+dotenv.config();
+
 const app = express();
+const PORT = process.env.PORT;
 
-app.use(cors({
-    credentials:true,
-})) //for auth purposes
+/*
+bodyParser.json(): Parses JSON data in the request body.
 
+bodyParser.urlencoded(): Parses URL-encoded data, commonly used for form submissions.
+
+*/
+
+app.use(cors());
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({extended:true}));
 app.use(compression());
-app.use(cookieparser());
-app.use(bodyparser.json());
+app.use(cookieParser());
 
-const server = http.createServer(app);
+app.use("/api/auth",router);
 
 
-mongoose.Promise = Promise;
-mongoose.connect(process.env.MONGO_URI);
-mongoose.connection.on('error',(error:Error) => console.log(error));
+mongoose
+     .connect(process.env.MONGO_URI as string)
+     .then(() => console.log("Db is connected"))
+     .catch((err) =>  console.error("connection error",err));
 
-server.listen(8000,() => {
-console.log("server running on http://localhost:8080/");
+app.listen(PORT,()=> {
+    console.log(`Server is running on http://localhost:${PORT}`)
 })
